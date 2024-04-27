@@ -407,6 +407,3 @@ def string_to_tree(
         pos += 1
 
     return root
-
-
-string_to_tree('foo bar\n\ta\n\tb\n\tc\nfoo \\bar')
