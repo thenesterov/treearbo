@@ -1,0 +1,13 @@
+[project]
+name = "treearbo"
+description = "Parser for .tree format"
+requires-python = ">=3.11"
+dependencies = []
+version = "0.0.1"
+license = {file = "LICENSE"}
+keywords = ["tree format", "$mol framework", "MAM language-agnostic modules"]
+authors = [{name = "Ivan Nesterov", email = "thenesterov@proton.me"}]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"

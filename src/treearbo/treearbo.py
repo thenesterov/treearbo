@@ -1,7 +1,7 @@
 import re
 from typing import Self, TypeAlias
 
-from exceptions import SpanError, TreeError, StringToTreeError
+from .exceptions import SpanError, TreeError, StringToTreeError
 
 
 class Span:
@@ -152,7 +152,7 @@ class Tree:
         if span is None:
             span = self.span
 
-        return Tree(self.type_, self.value, kids, span) 
+        return Tree(self.type_, self.value, kids, span)
 
     def text(self):
         values: list[str] = []
@@ -180,15 +180,15 @@ class Tree:
 
         if isinstance(type_, str):
             replaced = False
-            
+
             sub: list['Tree'] = []
-                
+
             for item in self.kids:
                 if item.type_ != type_:
                     sub.append(item)
 
                 replaced = True
-                
+
                 elem = item.insert(value, *path[1:])
 
                 if elem is not None:
@@ -341,13 +341,13 @@ def string_to_tree(
 
         while len(string) > pos and string[pos] != '\\' and string[pos] != '\n':
             error_start = pos
-            
+
             while len(string) > pos and (string[pos] == ' ' or string[pos] == '\t'):
                 pos += 1
 
             if pos > error_start:
                 line_end = string.index('\n', pos)
-            
+
                 if line_end == -1:
                     line_end = len(string)
 
