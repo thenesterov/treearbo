@@ -92,10 +92,10 @@ class Tree:
         self.span = span
 
     def __str__(self):
-        return self.type_ or '\\' + self.value
+        return tree_to_string(self)
 
     def __repr__(self):
-        return self.type_ or '\\' + self.value
+        return tree_to_string(self)
 
     @staticmethod
     def list_(
