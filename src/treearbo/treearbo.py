@@ -1,7 +1,7 @@
 import re
-from typing import Self, TypeAlias
+from typing import Union, Optional
 
-from .exceptions import SpanError, TreeError, StringToTreeError
+from exceptions import SpanError, TreeError, StringToTreeError
 
 
 class Span:
@@ -42,13 +42,13 @@ class Span:
             'length': self.length
         }
 
-    def span(self, row: int, col: int, length: int) -> Self:
+    def span(self, row: int, col: int, length: int) -> "Span":
         return Span(self.uri, self.source, row, col, length)
 
-    def after(self, length: int = 0) -> Self:
+    def after(self, length: int = 0) -> "Span":
         return Span(self.uri, self.source, self.row, self.col + self.length, length)
 
-    def slice(self, begin: int, end: int = -1) -> Self:
+    def slice(self, begin: int, end: int = -1) -> "Span":
         if begin < 0:
             begin += self.length
 
@@ -70,12 +70,12 @@ class Span:
         return f'{self.uri}#{self.row}:{self.col}/{self.length}'
 
     @classmethod
-    @property
-    def unknown(cls) -> Self:
+    #@property
+    def unknown(cls) -> "Span":
         return cls.begin('?')
 
 
-TreePath: TypeAlias = str | int | None
+TreePath = Union[str, int, None]
 
 
 class Tree:
@@ -147,7 +147,7 @@ class Tree:
     def clone(
         self,
         kids: list['Tree'],
-        span: Span | None = None
+        span: Optional[Span] = None
     ):
         if span is None:
             span = self.span
@@ -227,7 +227,7 @@ class Tree:
             if not len(next_):
                 break
 
-            prev: list[Self] = next_
+            prev: list["Tree"] = next_
             next_ = []
 
             for item in prev:
@@ -250,7 +250,7 @@ class Tree:
     def filter(
         self,
         path: list[str],
-        value: str | None
+        value: Optional[str]
     ):
         sub: list['Tree'] = []
 
