@@ -1,1 +1,6 @@
-from treearbo import string_to_tree, tree_to_string
+from treearbo.treearbo import Span, Tree
+
+__all__ = (
+    "Span",
+    "Tree",
+)
