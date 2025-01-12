@@ -1,0 +1,8 @@
+line-length = 120
+src = ["src"]
+
+include = ["src/**.py", "tests/**.py"]
+
+lint.select = [
+    "ALL"
+]
