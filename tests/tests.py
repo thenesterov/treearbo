@@ -155,6 +155,24 @@ class TestTree(unittest.TestCase):
             "all numbers is string: \\35\n\t\\171\n",
         )
 
+    def test_getitem(self):
+        tree_string = "user\n\tname \\Jin\n\tage 35\n"
+        tree = string_to_tree(tree_string)
+
+        self.assertEqual(
+            tree["user"]["name"][0].value,
+            "Jin"
+        )
+        self.assertEqual(
+            tree["user"]["age"][0].type_,
+            "35"
+        )
+
+        self.assertEqual(
+            tree["user"][1][0].type_,
+            "35"
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

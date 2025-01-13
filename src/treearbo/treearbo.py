@@ -259,3 +259,6 @@ class Tree:
             context = {}
 
         return [item for kid in self.kids for item in kid.hack_self(belt, context)]
+
+    def __getitem__(self, item: t.Union[str, int]):
+        return self.select(item).kids[0]
