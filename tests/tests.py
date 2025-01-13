@@ -56,42 +56,42 @@ class TestTree(unittest.TestCase):
     def _test_inserting(self):
         self.assertEqual(
             tree_to_string(
-                string_to_tree("a b c d\n").insert(Tree.struct("x"), "a", "b", "c")
+                string_to_tree("a b c d\n").insert(Tree.struct("x"), "a", "b", "c"),
             ),
             "a b x\n",
         )
 
         self.assertEqual(
             tree_to_string(
-                string_to_tree("a b\n").insert(Tree.struct("x"), "a", "b", "c", "d")
+                string_to_tree("a b\n").insert(Tree.struct("x"), "a", "b", "c", "d"),
             ),
             "a b c x\n",
         )
 
         self.assertEqual(
             tree_to_string(
-                string_to_tree("a b c d\n").insert(Tree.struct("x"), 0, 0, 0)
+                string_to_tree("a b c d\n").insert(Tree.struct("x"), 0, 0, 0),
             ),
             "a b x\n",
         )
 
         self.assertEqual(
             tree_to_string(
-                string_to_tree("a b c d\n").insert(Tree.struct("x"), None, None, None)
+                string_to_tree("a b c d\n").insert(Tree.struct("x"), None, None, None),
             ),
             "a b x\n",
         )
 
         self.assertEqual(
             tree_to_string(
-                string_to_tree("a b\n").insert(Tree.struct("x"), 0, 0, 0, 0)
+                string_to_tree("a b\n").insert(Tree.struct("x"), 0, 0, 0, 0),
             ),
             "a b \\\n\tx\n",
         )
 
         self.assertEqual(
             tree_to_string(
-                string_to_tree("a b\n").insert(Tree.struct("x"), None, None, None, None)
+                string_to_tree("a b\n").insert(Tree.struct("x"), None, None, None, None),
             ),
             "a b \\\n\tx\n",
         )
@@ -103,7 +103,56 @@ class TestTree(unittest.TestCase):
         )
 
         self.assertEqual(
-            tree_to_string(string_to_tree("a b c d\n").insert(None, 0, 0, 0)), "a b\n"
+            tree_to_string(string_to_tree("a b c d\n").insert(None, 0, 0, 0)),
+            "a b\n",
+        )
+
+    def test_hacking(self):
+        config = string_to_tree("password @password\n")
+
+        self.assertEqual(
+            tree_to_string(
+                config.wrap(
+                    config.hack(
+                        {
+                            "@password": lambda i, b, c: [i.data("qwerty")],
+                        },
+                    ),
+                ),
+            ),
+            "password \\qwerty\n",
+        )
+
+        sample = string_to_tree("spam egg xxx xxx\n")
+
+        self.assertEqual(
+            tree_to_string(
+                sample.wrap(
+                    sample.hack(
+                        {
+                            "xxx": lambda i, b, c: [i.struct("777", i.hack(b))],
+                        },
+                    ),
+                ),
+            ),
+            "spam egg 777 777\n",
+        )
+
+        caster = string_to_tree("all numbers is string: 35 171\n")
+
+        self.assertEqual(
+            tree_to_string(
+                caster.wrap(
+                    caster.hack(
+                        {
+                            "": lambda i, b, c: [i.data(i.type_, i.hack(b))]
+                            if i.type_.isdigit()
+                            else [i.clone(i.hack(b))],
+                        },
+                    ),
+                ),
+            ),
+            "all numbers is string: \\35\n\t\\171\n",
         )
 
 

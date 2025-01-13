@@ -65,6 +65,12 @@ class Span:
 
 
 TreePath = t.Union[str, int, None]
+Context = dict[str, t.Any]
+Belt = dict[str, "Hack"]
+
+
+class Hack(t.Protocol):
+    def __call__(self, input_: "Tree", belt: Belt, context: Context) -> list["Tree"]: ...
 
 
 class Tree:
@@ -80,7 +86,7 @@ class Tree:
         return tree_to_string(self)
 
     @staticmethod
-    def list_(kids: list["Tree"], span: Span = Span.unknown()):
+    def wrap(kids: list["Tree"], span: Span = Span.unknown()):
         return Tree("", "", kids, span)
 
     @staticmethod
@@ -93,11 +99,11 @@ class Tree:
         if len(chunks) > 1:
             kid_span: Span = span.span(span.row, span.col, 0)
 
-            data: list["Tree"] = list(
+            data: list[Tree] = list(
                 map(
                     lambda chunk: Tree("", chunk, [], kid_span.after(len(chunk))),
                     chunks,
-                )
+                ),
             )
 
             kids = [*data, *kids]
@@ -108,7 +114,9 @@ class Tree:
 
     @staticmethod
     def struct(
-        type_: str, kids: t.Optional[list["Tree"]] = None, span: Span = Span.unknown()
+        type_: str,
+        kids: t.Optional[list["Tree"]] = None,
+        span: Span = Span.unknown(),
     ) -> "Tree":
         if not kids:
             kids = []
@@ -150,7 +158,7 @@ class Tree:
         if isinstance(type_, str):
             replaced = False
 
-            sub: list["Tree"] = []
+            sub: list[Tree] = []
 
             for item in self.kids:
                 if item.type_ != type_:
@@ -172,35 +180,35 @@ class Tree:
                     sub.append(elem)
 
             return self.clone(sub)
-        elif isinstance(type_, int):
+        if isinstance(type_, int):
             sub = self.kids[:]
 
-            sub[type_] = (sub[type_] or self.list_([], self.span)).insert(
-                value, *path[1:]
+            sub[type_] = (sub[type_] or self.wrap([], self.span)).insert(
+                value,
+                *path[1:],
             )
 
             return self.clone(list(filter(bool, sub)))
-        else:
-            kids = list(
-                filter(
-                    bool,
-                    map(
-                        lambda kid: kid.insert(value, *path[1:]),
-                        [self.list_([])] if len(self.kids) == 0 else self.kids,
-                    ),
-                )
-            )
+        kids = list(
+            filter(
+                bool,
+                map(
+                    lambda kid: kid.insert(value, *path[1:]),
+                    [self.wrap([])] if len(self.kids) == 0 else self.kids,
+                ),
+            ),
+        )
 
-            return self.clone(kids)
+        return self.clone(kids)
 
     def select(self, *path: TreePath):
-        next_: list["Tree"] = [self]
+        next_: list[Tree] = [self]
 
         for type_ in path:
             if not len(next_):
                 break
 
-            prev: list["Tree"] = next_
+            prev: list[Tree] = next_
             next_ = []
 
             for item in prev:
@@ -210,18 +218,17 @@ class Tree:
                             next_.append(child)
 
                     break
-                elif isinstance(type_, int):
+                if isinstance(type_, int):
                     if type_ < len(item.kids):
                         next_.append(item.kids[type_])
 
                     break
-                else:
-                    next_.append(*item.kids)
+                next_.append(*item.kids)
 
-        return Tree.list_(next_, self.span)
+        return Tree.wrap(next_, self.span)
 
     def filter(self, path: list[str], value: t.Optional[str]):
-        sub: list["Tree"] = []
+        sub: list[Tree] = []
 
         for item in self.kids:
             found = item.select(*path)
@@ -229,8 +236,26 @@ class Tree:
             if value is None:
                 if len(found.kids):
                     sub.append(item)
-            else:
-                if any(map(lambda child: child.value == value, found.kids)):
-                    sub.append(item)
+            elif any(map(lambda child: child.value == value, found.kids)):
+                sub.append(item)
 
         return self.clone(sub)
+
+    def hack_self(self, belt: Belt, context: t.Optional[Context] = None):
+        if not context:
+            context = {}
+
+        handle: t.Optional[Hack] = belt.get(self.type_) or belt.get("")
+
+        if not handle:
+            handle = lambda input_, belt_, context_: [  # noqa
+                input_.clone(input_.hack(belt_, context_), context_.get("span")),
+            ]
+
+        return handle(self, belt, context)
+
+    def hack(self, belt: Belt, context: t.Optional[Context] = None):
+        if not context:
+            context = {}
+
+        return [item for kid in self.kids for item in kid.hack_self(belt, context)]

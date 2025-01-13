@@ -1,4 +1,4 @@
-from treearbo import Tree, Span
+from treearbo import Span, Tree
 from treearbo.exceptions import StringToTreeError
 
 
@@ -33,7 +33,7 @@ def tree_to_string(tree: Tree) -> str:
 def string_to_tree(string: str, uri: str = "?") -> Tree:
     span = Span.entire(uri, string)
 
-    root = Tree.list_([], span)
+    root = Tree.wrap([], span)
     stack = [root]
 
     pos, row, min_indent = 0, 0, 0
@@ -62,7 +62,7 @@ def string_to_tree(string: str, uri: str = "?") -> Tree:
             if indent < 0:
                 if len(string) > pos:
                     raise StringToTreeError(
-                        f"Too few tabs {string[line_start:pos]} {sp}"
+                        f"Too few tabs {string[line_start:pos]} {sp}",
                     )
             else:
                 raise StringToTreeError(f"Too many tabs {string[line_start:pos]} {sp}")
@@ -87,7 +87,7 @@ def string_to_tree(string: str, uri: str = "?") -> Tree:
                 sp = span.span(row, error_start - line_start + 1, pos - error_start)
 
                 raise StringToTreeError(
-                    f"Wrong nodes separator {string[line_start:line_end]} {sp}"
+                    f"Wrong nodes separator {string[line_start:line_end]} {sp}",
                 )
 
             type_start = pos
@@ -139,7 +139,7 @@ def string_to_tree(string: str, uri: str = "?") -> Tree:
             sp = span.span(row, pos - line_start + 1, 1)
 
             raise StringToTreeError(
-                f"Unexpected EOF, LF required {string[line_start : len(string)]} {sp}"
+                f"Unexpected EOF, LF required {string[line_start : len(string)]} {sp}",
             )
 
         stack.append(parent)
